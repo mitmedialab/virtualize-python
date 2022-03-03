@@ -1,0 +1,8 @@
+*~
+.DS_Store
+/.cache
+/*.log
+.env
+.env.*
+python/
+virtualenv.pyz

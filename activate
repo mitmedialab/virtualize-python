@@ -1,0 +1,81 @@
+#https://unix.stackexchange.com/a/153061
+VIRTUALIZE_SOURCED_NAME="$_"
+
+if [ "${BASH_SOURCE-}" = "$0" ]; then
+    echo "You must source this script: \$ source $0" >&2
+    exit 33
+fi
+
+if [[ $VIRTUALIZE_ROOT && ! $VIRTUALIZE_ACTIVATING ]]; then
+    echo "virtualizer is active, not activating" $VIRTUALIZE_SOURCED_NAME
+    unset VIRTUALIZE_SOURCED_NAME
+    return
+fi
+
+if [[ $VIRTUALIZE_PYTHON_DIR ]]; then
+    echo "This shell is already virtualized for $VIRTUALIZE_PYTHON_DIR, type 'unactivate' to undo"
+    return
+fi
+
+VIRTUALIZE_PYTHON_DIR=$( cd -- "$( dirname -- "${VIRTUALIZE_SOURCED_NAME}" )" &> /dev/null && pwd )
+
+VIRTUALIZE_PYTHON_ORIG_PATH="$PATH"
+export PATH="$VIRTUALIZE_PYTHON_DIR/python/sbin:$VIRTUALIZE_PYTHON_DIR/python/bin":$PATH
+
+function unactivate_python() {
+    deactivate
+    PATH="$VIRTUALIZE_PYTHON_ORIG_PATH"
+    if [[ $VIRTUALIZE_PYTHON_ORIG_MANPATH ]]; then
+	MANPATH="$VIRTUALIZE_PYTHON_ORIG_MANPATH"
+    else
+	unset MANPATH
+    fi
+    unset VIRTUALIZE_PYTHON_ORIG_PATH
+    unset VIRTUALIZE_SOURCED_NAME
+    unset VIRTUALIZE_PYTHON_INSTALL_DIR
+    unset VIRTUALIZE_PYTHON_DIR
+}
+
+VIRTUALIZE_PYTHON_ORIG_PS1="$PS1"
+source $VIRTUALIZE_PYTHON_DIR/python/bin/activate
+PS1="$VIRTUALIZE_PYTHON_ORIG_PS1"
+
+# stop here if called on behalf of virtualize
+if [[ $VIRTUALIZE_ACTIVATING ]]; then
+    # let virtualized deal with customizing the prompt
+    return
+fi
+
+###
+### standalone mode only from here on
+###
+
+VIRTUALIZE_ROOT=$VIRTUALIZE_PYTHON_DIR  # prevents autoactivating
+
+function unactivate() {
+    local virtualize_python_dir="$VIRTUALIZE_PYTHON_DIR"
+    unactivate_python
+    unset -f unactivate_python
+    PS1="$VIRTUALIZE_PYTHON_ORIG_PS1"
+    unset VIRTUALIZE_PYTHON_ORIG_PS1
+    unset VIRTUALIZE_PYTHON_ACTIVE_VERSION
+    unset VIRTUALIZE_PYTHON_DISPLAY
+    unset VIRTUALIZE_ROOT
+    unset -f unactivate
+    echo "unactivated $virtualize_python_dir"
+}
+
+#VIRTUALIZE_PYTHON_ORIG_PS1="$PS1"
+VIRTUALIZE_PYTHON_ACTIVE_VERSION=`$VIRTUALIZE_PYTHON_DIR/python/bin/python --version 2>&1 | head -1 | cut -d" " -f2`
+VIRTUALIZE_PYTHON_DISPLAY="`echo $VIRTUALIZE_PYTHON_DIR | sed \"s%^$HOME/%%" | sed 's/\//·/g'` $VIRTUALIZE_PYTHON_ACTIVE_VERSION"
+if [[ $ZSH_VERSION ]]; then
+   PS1="[$VIRTUALIZE_PYTHON_DISPLAY]$PS1"
+else  # for bash (and others?)
+   PS1="[$VIRTUALIZE_PYTHON_DISPLAY]\n$PS1"
+fi
+
+echo "python activated for $VIRTUALIZE_PYTHON_DIR"
+echo "type 'unactivate' to undo"
+
+
+
