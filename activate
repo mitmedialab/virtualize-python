@@ -66,8 +66,8 @@ function unactivate() {
 }
 
 #VIRTUALIZE_PYTHON_ORIG_PS1="$PS1"
-VIRTUALIZE_PYTHON_ACTIVE_VERSION=`$VIRTUALIZE_PYTHON_DIR/python/bin/python --version 2>&1 | head -1 | cut -d" " -f2`
-VIRTUALIZE_PYTHON_DISPLAY="`echo $VIRTUALIZE_PYTHON_DIR | sed \"s%^$HOME/%%" | sed 's/\//·/g'` $VIRTUALIZE_PYTHON_ACTIVE_VERSION"
+VIRTUALIZE_PYTHON_ACTIVE_VERSION=$( $VIRTUALIZE_PYTHON_DIR/python/bin/python --version 2>&1 | head -1 | cut -d" " -f2 )
+VIRTUALIZE_PYTHON_DISPLAY="$(echo $VIRTUALIZE_PYTHON_DIR | sed \"s%^$HOME/%%" | sed 's/\//·/g') $VIRTUALIZE_PYTHON_ACTIVE_VERSION"
 if [[ $ZSH_VERSION ]]; then
    PS1="[$VIRTUALIZE_PYTHON_DISPLAY]$PS1"
 else  # for bash (and others?)
