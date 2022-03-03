@@ -25,11 +25,6 @@ export PATH="$VIRTUALIZE_PYTHON_DIR/python/sbin:$VIRTUALIZE_PYTHON_DIR/python/bi
 function unactivate_python() {
     deactivate
     PATH="$VIRTUALIZE_PYTHON_ORIG_PATH"
-    if [[ $VIRTUALIZE_PYTHON_ORIG_MANPATH ]]; then
-	MANPATH="$VIRTUALIZE_PYTHON_ORIG_MANPATH"
-    else
-	unset MANPATH
-    fi
     unset VIRTUALIZE_PYTHON_ORIG_PATH
     unset VIRTUALIZE_SOURCED_NAME
     unset VIRTUALIZE_PYTHON_INSTALL_DIR
